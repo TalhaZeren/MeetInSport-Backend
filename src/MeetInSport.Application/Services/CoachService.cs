@@ -42,7 +42,7 @@ public class CoachService : ICoachService
 
     public async Task<CoachResponseDto> GetMyProfileAsync(Guid userId)
     {
-        var coach = await _coachRepository.GetByIdAsync(userId);
+        var coach = await _coachRepository.GetCoachByUserIdAsync(userId);
 
         if (coach == null)
         {

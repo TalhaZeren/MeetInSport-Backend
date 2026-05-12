@@ -11,5 +11,7 @@ public class ReservationProfile : Profile
         CreateMap<Reservation, ReservationResponseDto>()
         .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
         .ForMember(dest => dest.LocationType, opt => opt.MapFrom(src => src.LocationType.ToString())); // int to string #LocationType.cs (Enum)
+
+
     }
 }
