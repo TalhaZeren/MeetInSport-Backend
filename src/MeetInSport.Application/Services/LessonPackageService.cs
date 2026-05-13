@@ -69,4 +69,40 @@ public class LessonPackageService : ILessonPackageService
         var packages = await _lessonPackageRepository.GetPackagesByCoachIdAsync(coachId);
         return _mapper.Map<IEnumerable<LessonPackageResponseDto>>(packages);
     }
+
+    public async Task<LessonPackageResponseDto> UpdatePackageAsync(Guid packageId, UpdateLessonPackageDto updateLessonPackageDto, Guid currentUserId)  {
+
+        var package = await _lessonPackageRepository.GetByIdAsync(packageId) ?? 
+        throw new NotFoundException(nameof(LessonPackage), packageId);
+
+        var coach = await _coachRepository.GetCoachByUserIdAsync(currentUserId) ??
+        throw new UnauthorizedAccessException("Koç Profili Bulunamadı.");
+        
+        if(package.CoachId != coach.Id){
+            throw new UnauthorizedAccessException("Bu Paketi Güncelleme Yetkiniz Yok.");
+        }
+
+        package.PackageName = updateLessonPackageDto.PackageName;
+        package.PackageDescription = updateLessonPackageDto.PackageDescription;
+        package.DurationInMinutes = updateLessonPackageDto.DurationInMinutes;
+        package.PackagePrice = updateLessonPackageDto.PackagePrice;
+        package.Requirements = updateLessonPackageDto.Requirements;
+        package.LocationType = updateLessonPackageDto.LocationType;
+        package.LessonModel = updateLessonPackageDto.LessonModel;
+        package.CoverImageUrl= updateLessonPackageDto.CoverImageUrl;
+        package.IsActive = updateLessonPackageDto.IsActive;
+
+        _lessonPackageRepository.Update(package);
+        await _lessonPackageRepository.SaveChangesAsync();
+
+        return _mapper.Map<LessonPackageResponseDto>(package);
+        
+    }
+
+    public async Task<LessonPackageResponseDto> GetPackageByIdAsync(Guid packageId){
+        var package = await _lessonPackageRepository.GetByIdAsync(packageId) ??
+        throw new NotFoundException(nameof(LessonPackage), packageId);
+        return _mapper.Map<LessonPackageResponseDto>(package);
+    }
+
 }

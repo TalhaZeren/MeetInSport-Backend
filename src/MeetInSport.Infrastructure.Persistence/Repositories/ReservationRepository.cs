@@ -11,18 +11,22 @@ public class ReservationRepository : GenericRepository<Reservation>, IReservatio
 
     public ReservationRepository(AppDbContext context) : base(context)
     { }
+
     public async Task<IReadOnlyList<Reservation>> GetReservationsByUserIdAsync(Guid userId)
     {
-        // Include() is used to load related entities (Coach and Package) when fetching reservations for a specific user. This allows you to access the details of the coach and package associated with each reservation without needing additional queries.
-        return await _dbSet.Include(r => r.Coach)
+        return await _dbSet
+        .Include(c => c.Coach).ThenInclude(u => u.User)
         .Include(p => p.Package)
+        .Include(s => s.Student)
         .Where(u => u.StudentId == userId).ToListAsync();
+        
     }
     public async Task<IReadOnlyList<Reservation>> GetReservationsByCoachIdAsync(Guid coachId)
     {
-        //  Include() is used to load related entities (Student and Package) when fetching reservations for a specific coach. This allows you to access the details of the student and package associated with each reservation without needing additional queries.
-        return await _dbSet.Include(r => r.Student)
+        return await _dbSet
+        .Include(r => r.Coach).ThenInclude(u => u.User)
         .Include(p => p.Package)
+        .Include(r => r.Student)
         .Where(c => c.CoachId == coachId).ToListAsync();
     }
 }

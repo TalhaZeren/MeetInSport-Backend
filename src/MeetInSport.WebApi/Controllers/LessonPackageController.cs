@@ -61,4 +61,28 @@ public class LessonPackageController : ControllerBase
             return StatusCode(403, new { message = ex.Message });
         }
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<LessonPackageResponseDto>> UpdatePackageAsync(Guid id,
+    [FromBody] UpdateLessonPackageDto updateLessonPackageDto){
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if(string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid currentUserId))
+        {
+            return Unauthorized(new {message = "Invalid Token Data"});
+        } 
+        try{
+            var response = await _lessonPackageService.UpdatePackageAsync(id,updateLessonPackageDto,currentUserId);
+            return Ok(response);
+        } catch(UnauthorizedAccessException ex){
+            return StatusCode(403, new {message = ex.Message});
+        }
+    } 
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<LessonPackageResponseDto>> GetPackageByIdAsync(Guid id){
+  
+            var packageResponse = await _lessonPackageService.GetPackageByIdAsync(id);
+            return Ok(packageResponse);
+    
+    }
 }
