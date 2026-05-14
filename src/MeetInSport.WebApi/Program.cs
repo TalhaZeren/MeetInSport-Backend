@@ -84,6 +84,10 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.Configure<MeetInSport.Application.DTOs.EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings");
+);
+
 // Define the Security Scheme (The Padlock)
 
 var app = builder.Build();
