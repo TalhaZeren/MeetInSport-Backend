@@ -16,14 +16,73 @@ public class ReservationService : IReservationService
     private readonly IGenericRepository<LessonPackage> _packageRepository;
     private readonly IMapper _mapper;
     private readonly ICoachRepository _coachRepository;
+    private readonly IEmailService _emailService;
+    private readonly IUserRepository _userRepository;
 
-    public ReservationService(IReservationRepository reservationRepository, IGenericRepository<LessonPackage> packageRepository, IMapper mapper, ICoachRepository coachRepository)
+    public ReservationService(
+        IReservationRepository reservationRepository,
+        IGenericRepository<LessonPackage> packageRepository,
+        IMapper mapper,
+        ICoachRepository coachRepository,
+        IEmailService emailService,
+        IUserRepository userRepository
+      )
     {
         _reservationRepository = reservationRepository;
         _packageRepository = packageRepository;
         _mapper = mapper;
         _coachRepository = coachRepository;
+        _emailService = emailService;
+        _userRepository = userRepository;
     }
+
+    public async Task<ReservationResponseDto> ConfirmReservationAsync(Guid reservationId, Guid userId, string role){
+        var reservation = await _reservationRepository.GetByIdAsync(reservationId)
+        ?? throw new NotFoundException(nameof(Domain.Entities.Reservation), reservationId);
+
+        if(role == "Coach"){
+            var coach = await _coachRepository.GetCoachByUserIdAsync(userId);
+            if(coach == null || reservation.CoachId != coach.Id){
+                throw new UnauthorizedAccessException("Bu rezervasyonu onaylamaya yetkiniz bulunmamaktadır.");
+            }
+        }
+        else{
+            throw new UnauthorizedAccessException("Sadece Antrenörler Rezervasyonu Onaylayabilir.");
+        }
+        if(reservation.Status != ReservationStatus.Pending){
+            throw new InvalidOperationException($"Rezervasyon Onaylanamaz. Durum : {reservation.Status}.");
+        }
+        reservation.Status = ReservationStatus.Confirmed;
+        reservation.UpdatedAt = DateTime.UtcNow;
+
+        _reservationRepository.Update(reservation);
+        await _reservationRepository.SaveChangesAsync();
+        
+        // Sending mail to student
+
+        try{
+            var studentUser = await _userRepository.GetByIdAsync(reservation.StudentId);
+            if(studentUser != null && !string.IsNullOrEmpty(studentUser.Email)){
+                string subject = "Rezervasyonunuz antrenörünüz tarafından onaylandı. - MeetInSport";
+                string body = $"Merhaba {studentUser.Name}, \n\n" + 
+                $"Harika bir haber! Antrenörünüz ders reervasyonunuzu onayladı. \n" +
+                $"Tarih : {reservation.ScheduledAt.ToString("dd/MM/yyyyHH:mm")} \n\n" +
+                $"Konum: {reservation.LocationType} \n\n" +
+                $"Eğer herhangi bir sorun yaşanırsa, lütfen en kısa sürede antrenörünüzle iletişime geçin.İyi antrenmanlar dileriz :)\n\n" +
+                $"Saygılarımızla, \nMeetInSport Ekibi";
+            
+            await _emailService.SendEmailAsync(studentUser.Email, subject, body);            
+            }
+        }
+        catch(Exception ex){
+            Console.WriteLine($"Rezervasyon onay email gönderilemedi: {ex.Message}");
+        }
+        return _mapper.Map<ReservationResponseDto>(reservation);
+    }
+
+
+
+
 
     public async Task<ReservationResponseDto> CancelReservationAsync(Guid reservationId, Guid userId, string role, CancelReservationDto cancelReservationDto)
     {

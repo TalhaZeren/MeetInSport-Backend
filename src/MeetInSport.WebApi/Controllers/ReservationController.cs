@@ -71,5 +71,24 @@ public class ReservationController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+    [HttpPut("{id:guid}/confirm")]
+    public async Task<ActionResult<ReservationResponseDto>> ConFirmReservationDto(Guid id){
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
+        if(string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId) || string.IsNullOrEmpty(roleClaim)){
+            return Unauthorized(new {message = "Geçersiz token isteği"});
+        }
+
+        try{
+            var response = await _reservationService.ConfirmReservationAsync(id, userId, roleClaim);
+            return Ok(response);
+        }
+        catch(UnauthorizedAccessException ex){
+            return StatusCode(403, new{message = ex.Message});
+        }
+        catch(InvalidOperationException ex){
+            return BadRequest(new {message = ex.Message});
+        }
+    }
 }
