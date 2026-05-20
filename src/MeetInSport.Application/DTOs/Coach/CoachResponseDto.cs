@@ -12,5 +12,5 @@ public class CoachResponseDto
     public int Experience { get; set; }
     public decimal AverageRating { get; set; }
     public string? Location { get; set; }
-
+    public string? AvatarUrl { get; set; }
 }

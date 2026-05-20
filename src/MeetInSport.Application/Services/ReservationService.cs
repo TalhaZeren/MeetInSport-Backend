@@ -81,12 +81,9 @@ public class ReservationService : IReservationService
     }
 
 
-
-
-
     public async Task<ReservationResponseDto> CancelReservationAsync(Guid reservationId, Guid userId, string role, CancelReservationDto cancelReservationDto)
     {
-        var reservation = await _reservationRepository.GetByIdAsync(reservationId) ?? throw new NotFoundException(nameof(Domain.Entities.Reservation), reservationId);
+       var reservation = await _reservationRepository.GetReservationWithDetailsByIdAsync(reservationId) ?? throw new NotFoundException(nameof(Domain.Entities.Reservation), reservationId);
 
         if (role == "Coach")
         {
@@ -116,7 +113,30 @@ public class ReservationService : IReservationService
 
         _reservationRepository.Update(reservation);
         await _reservationRepository.SaveChangesAsync();
-
+        
+        try {
+            if(role == "Coach" && reservation.Student != null){
+                var subject = "Rezervasyon İptali Bilgilendirmesi";
+                var body = $"Merhaba {reservation.Student.Name},\n\n" +
+                           $"Antrenörünüz '{reservation.Package?.PackageName}' ders paketine ait rezervasyonunuzu maalesef iptal etmiştir.\n" +
+                           $"İptal Nedeni: {cancelReservationDto.CancelReason}\n\n" +
+                           $"Detaylı bilgi için antrenörünüzle iletişime geçebilirsiniz.\n\n" +
+                           $"Saygılarımızla,\nMeetInSport Ekibi";
+            
+            await _emailService.SendEmailAsync(reservation.Student.Email, subject,body);
+            }
+            else if (role == "Student" && reservation.Coach?.User != null){
+                var subject = "Öğrenci Rezervasyon İptali";
+                var body = $"Merhaba {reservation.Coach.User.Name},\n\n" +
+                           $"Öğrenciniz '{reservation.Package?.PackageName}' ders paketine ait rezervasyonunu iptal etmiştir.\n" +
+                           $"İptal Nedeni: {cancelReservationDto.CancelReason}\n\n" +
+                           $"Saygılarımızla,\nMeetInSport Ekibi";
+                    await _emailService.SendEmailAsync(reservation.Coach.User.Email, subject, body);
+            }
+        }
+        catch(Exception ex) {
+            Console.WriteLine($"Rezervasyon İptali Email Gönderilemedi : {ex.Message}");
+        }
         return _mapper.Map<ReservationResponseDto>(reservation);
     }
 
@@ -136,6 +156,7 @@ public class ReservationService : IReservationService
             Notes = createReservationDto.Notes,
             Status = ReservationStatus.Pending, // all new reservations start as panding
             CreatedAt = DateTime.UtcNow,
+            ExpirationAt = DateTime.UtcNow.AddDays(requiredPackage.ExpirationDays),
         };
         await _reservationRepository.AddAsync(reservation);
         await _reservationRepository.SaveChangesAsync();
@@ -157,5 +178,22 @@ public class ReservationService : IReservationService
             reservations = await _reservationRepository.GetReservationsByUserIdAsync(userId);
         }
         return _mapper.Map<IEnumerable<ReservationResponseDto>>(reservations);
+    }
+    public async Task<ReservationResponseDto> GetReservationByIdAsync(Guid reservationId, Guid userId, string role){
+        var reservation = await _reservationRepository.GetReservationWithDetailsByIdAsync(reservationId);
+
+        if(reservation == null){
+            throw new NotFoundException(nameof(Reservation), reservationId);
+        }
+        if(role == "Student" && reservation.StudentId != userId){
+            throw new UnauthorizedAccessException("Bu rezervasyonu görmeye yetkiniz bulunmamaktadır.");
+        }
+        if(role == "Coach"){
+            var coach = await _coachRepository.GetCoachByUserIdAsync(userId) ?? throw new NotFoundException("Coach Profile", userId);
+            if(reservation.CoachId != coach.Id){
+                throw new UnauthorizedAccessException("Bu rezervasyonu görmeye yetkiniz bulunmamaktadır.");
+            }
+        }
+        return _mapper.Map<ReservationResponseDto>(reservation);
     }
 }

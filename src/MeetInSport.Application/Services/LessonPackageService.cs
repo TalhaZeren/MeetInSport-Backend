@@ -38,7 +38,8 @@ public class LessonPackageService : ILessonPackageService
             LessonModel = createLessonPackageDto.LessonModel,
             CoverImageUrl = createLessonPackageDto.CoverImageUrl,
             IsActive = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ExpirationDays = createLessonPackageDto.ExpirationDays,
         };
         // Saving package to database.
         await _lessonPackageRepository.AddAsync(packageEntity);
@@ -58,8 +59,10 @@ public class LessonPackageService : ILessonPackageService
         {
             throw new UnauthorizedAccessException("Bu pakete sahip değilsiniz.");
         }
-        // Even though we wrote Delete method which means package will be deleted,
-        //  AddDbContext will understand what it means and will intercept it.
+        var hasStudents = await _lessonPackageRepository.HasReservationAsync(packageId);
+        if(hasStudents){
+              throw new InvalidOperationException("Bu paketi satın alan öğrenciler olduğu için paketi silemezsiniz.");
+        }
         _lessonPackageRepository.Delete(package);
         await _lessonPackageRepository.SaveChangesAsync();
     }
@@ -69,6 +72,7 @@ public class LessonPackageService : ILessonPackageService
         var packages = await _lessonPackageRepository.GetPackagesByCoachIdAsync(coachId);
         return _mapper.Map<IEnumerable<LessonPackageResponseDto>>(packages);
     }
+    
 
     public async Task<LessonPackageResponseDto> UpdatePackageAsync(Guid packageId, UpdateLessonPackageDto updateLessonPackageDto, Guid currentUserId)  {
 
@@ -91,6 +95,7 @@ public class LessonPackageService : ILessonPackageService
         package.LessonModel = updateLessonPackageDto.LessonModel;
         package.CoverImageUrl= updateLessonPackageDto.CoverImageUrl;
         package.IsActive = updateLessonPackageDto.IsActive;
+        package.ExpirationDays = updateLessonPackageDto.ExpirationDays;
 
         _lessonPackageRepository.Update(package);
         await _lessonPackageRepository.SaveChangesAsync();

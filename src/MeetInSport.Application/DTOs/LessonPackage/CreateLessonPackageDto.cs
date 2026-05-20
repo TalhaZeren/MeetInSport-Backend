@@ -13,4 +13,5 @@ public class CreateLessonPackageDto
     public LocationType LocationType { get; set; } = LocationType.CoachLocation;
     public LessonModel LessonModel { get; set; } = LessonModel.OneOnOne;
     public string? CoverImageUrl { get; set; }
+    public int ExpirationDays { get; set; }
 }

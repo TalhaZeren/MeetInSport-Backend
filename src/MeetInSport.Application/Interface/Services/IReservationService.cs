@@ -9,4 +9,5 @@ public interface IReservationService
     Task<IEnumerable<ReservationResponseDto>> GetMyReservationsAsync(Guid userId, string role);
     Task<ReservationResponseDto> CancelReservationAsync(Guid reservationId, Guid userId, string role, CancelReservationDto cancelReservationDto);
     Task<ReservationResponseDto> ConfirmReservationAsync(Guid reservationId, Guid userId, string role);
+    Task<ReservationResponseDto> GetReservationByIdAsync(Guid reservationId,Guid userId, string role);
 }

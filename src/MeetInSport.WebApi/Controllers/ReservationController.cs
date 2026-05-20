@@ -91,4 +91,22 @@ public class ReservationController : ControllerBase
             return BadRequest(new {message = ex.Message});
         }
     }
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ReservationResponseDto>> GetReservationByIdAsync(Guid id){
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if(string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId) || string.IsNullOrEmpty(roleClaim))
+        {
+            return Unauthorized(new {message = "Invalid Token Claims."});
+        }
+
+        try{
+            var response = await _reservationService.GetReservationByIdAsync(id, userId,roleClaim);
+            return Ok(response);
+        }
+        catch(UnauthorizedAccessException ex){
+            return StatusCode(403, new {message = ex.Message});
+        }
+    }
 }

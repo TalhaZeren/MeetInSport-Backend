@@ -13,6 +13,7 @@ public class UpdateLessonPackageDto { 
     public LessonModel LessonModel { get; set; }
     public string? CoverImageUrl { get; set; }
     public bool IsActive { get; set; } // seperates from the CreateLessonPackageDto
+    public int ExpirationDays { get; set; }
 }
 
 

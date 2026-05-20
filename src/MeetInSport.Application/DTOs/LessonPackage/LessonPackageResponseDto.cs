@@ -15,4 +15,5 @@ public class LessonPackageResponseDto
     public string LessonModel { get; set; } = string.Empty;
     public string? CoverImageUrl { get; set; }
     public bool IsActive { get; set; }
+    public int ExpirationDays { get; set; }
 }

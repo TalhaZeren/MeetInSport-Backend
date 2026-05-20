@@ -13,6 +13,7 @@ namespace MeetInSport.Domain.Entities
         public List<string> Requirements { get; set; } = new List<string>();
         public LocationType LocationType { get; set; } = LocationType.CoachLocation;
         public bool IsActive { get; set; }
+        public int ExpirationDays{get; set ;} = 30;
         public LessonModel LessonModel { get; set; } = LessonModel.OneOnOne;
         public string? CoverImageUrl { get; set; }
         public virtual Coach Coach { get; set; } = null!;

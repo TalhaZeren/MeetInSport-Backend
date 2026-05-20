@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<ISportService, SportService>();
         services.AddScoped<IEmailService, SmtpEmailService>();
+        services.AddScoped<IUserService, UserService>();
         services.AddAutoMapper(Assembly.GetExecutingAssembly()); // This line is added to register AutoMapper and scan the current assembly for mapping profiles.  
         return services;
     }

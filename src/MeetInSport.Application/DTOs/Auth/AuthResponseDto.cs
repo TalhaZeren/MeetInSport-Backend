@@ -8,4 +8,5 @@ public class AuthResponseDto
     public string Message { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public string Sport { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
 }

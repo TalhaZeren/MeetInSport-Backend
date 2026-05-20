@@ -29,4 +29,13 @@ public class ReservationRepository : GenericRepository<Reservation>, IReservatio
         .Include(r => r.Student)
         .Where(c => c.CoachId == coachId).ToListAsync();
     }
+
+    public async Task<Reservation?> GetReservationWithDetailsByIdAsync(Guid id){
+        return await _dbSet
+        .Include(r => r.Coach).ThenInclude(c => c.User)
+        .Include(p => p.Package)
+        .Include(r => r.Student)
+        .FirstOrDefaultAsync(r => r.Id == id);
+    }
+
 }

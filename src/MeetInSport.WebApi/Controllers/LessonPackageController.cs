@@ -60,6 +60,9 @@ public class LessonPackageController : ControllerBase
         {
             return StatusCode(403, new { message = ex.Message });
         }
+        catch(InvalidOperationException ex){
+            return StatusCode(400, new {message = ex.Message});
+        }
     }
 
     [HttpPut("{id:guid}")]

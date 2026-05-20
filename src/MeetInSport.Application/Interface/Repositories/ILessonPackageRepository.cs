@@ -6,4 +6,6 @@ namespace MeetInSport.Application.Interface.Repositories;
 public interface ILessonPackageRepository : IGenericRepository<LessonPackage>
 {
     Task<IReadOnlyList<LessonPackage>> GetPackagesByCoachIdAsync(Guid coachId);
+
+    Task<bool> HasReservationAsync(Guid packageId);
 }

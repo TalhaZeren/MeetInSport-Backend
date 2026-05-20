@@ -16,4 +16,9 @@ public class LessonPackageRepository : GenericRepository<LessonPackage>, ILesson
         return await _dbSet.Where(p => p.CoachId == coachId).ToListAsync();
     }
 
+    public async Task<bool> HasReservationAsync(Guid packageId){
+        return await _context.Set<Reservation>().AnyAsync(r => r.PackageId == packageId);
+    }
+
+
 }

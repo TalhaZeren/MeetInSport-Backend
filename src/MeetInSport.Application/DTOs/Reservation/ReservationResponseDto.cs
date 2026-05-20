@@ -14,5 +14,6 @@ public class ReservationResponseDto
     public string PackageName { get; set; } = string.Empty;
     public string CoachName { get; set; } = string.Empty;
     public string StudentName { get; set; } = string.Empty;
+    public DateTime ExpirationAt { get; set; }
 
 }

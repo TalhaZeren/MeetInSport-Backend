@@ -14,7 +14,7 @@ namespace MeetInSport.Domain.Entities
         public LocationType LocationType { get; set; }
         public ReservationStatus Status { get; set; } = ReservationStatus.Pending; // all new reservations start as pending
         public string? Notes { get; set; }
-
+        public DateTime ExpirationAt { get; set; }
         public DateTime? CancelledAt { get; set; }
         public string? CancelReason { get; set; }
 
